@@ -5,7 +5,7 @@
  */
 return [
     //******以下配置是全局生效的,模块下同名配置无效******
-    'home'  =>'',//默认首页,*全局*,格式: 模块/控制器/方法.例如 admin/index/home
+    'home'  =>'demo/index/index',//默认首页,*全局*,格式: 模块/控制器/方法.例如 admin/index/home
     'suffix'    =>['htm','Html','json','jsonp','do','shtml','xml'],//支持的伪静态后缀,*全局*
     'url_router'    =>true,//是否启用url路由功能,*全局*
     
