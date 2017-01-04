@@ -23,6 +23,6 @@ class page{ //类名要跟类文件名一致(去掉.php后缀的文件名)
 上述类的使用,只需要在控制器或模型里;例如:
 
 use mypage\page;  或者 use mypage\page as 别名;
-即可自动加载调用了.
+即可自动加载调用了.OK!
 
 $page = new page(); // or new 别名();
