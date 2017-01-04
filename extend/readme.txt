@@ -8,7 +8,7 @@ extend
 例如: 自定义了一个通用的分页类
 
 extend
-    |----mypage(目录)----page.php(分页类文件)
+    |----mypage(目录)----page.php(分页类文件);
 		
 page.php的实现
 <?php
