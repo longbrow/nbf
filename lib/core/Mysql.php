@@ -4,31 +4,59 @@ use \PDO;
 class Mysql{
 
     protected static $datebase =[];//可能多个配置
-    protected $pdo = [];//可能多个连接
-    protected $one_db = false;//只有一个数据库
+    protected $pdo = [];//将连接后的pdo对象存放到这个数组里
+    protected $cur_connect = NULL;//当前使用哪个数据库连接
     public function __construct() {
         //如果配置里只有一个数据库,那么构造的时候就直接建立连接
         if(count(self::$datebase)==1){
-            $this->one_db = true;
              $db_identifier=array_keys(self::$datebase);//取出数据库标识符
-             $this->pdo[0] = $this->connectDb($db_identifier[0]);//创建pdo实例
+             $this->cur_connect = $this->connectDb($db_identifier[0]);//创建pdo实例
            
         }
       
     }
-    
+    /*
+     * 选择一个要使用的数据库
+     * $db_identifier 代表database里设置的数据库标识
+     * 返回一个数据库连接后的实例对象本身
+     */
+    public function useDb($db_identifier){
+        if(empty($db_identifier)){ //为空,查找默认数据库
+
+              throw new \Exception(" useDb() 参数不能为空 !" );
+              
+          }
+        
+        //判断是否已经建立过连接
+         $connect = isset($this->pdo[$db_identifier])?$this->pdo[$db_identifier]:NULL;
+         if($connect){
+             $this ->cur_connect = $connect;
+             
+         }
+         else{
+             $this ->pdo[$db_identifier] = $this ->connectDb($db_identifier);
+             $this ->cur_connect = $this ->pdo[$db_identifier];
+
+         }
+         return $this;
+    }
+
+
     /*
      * 建立数据库连接
      * 返回PDO实例
      */
     protected function connectDb($db_identifier){
+            if(!isset(self::$datebase[$db_identifier])){
+                throw new \Exception(get_module()." 模块下的datebase.php文件里,没有找到 ".$db_identifier .' 的配置信息!' );
+            }
             $dsn = "mysql:host=".self::$datebase[$db_identifier]['host'].";port=".self::$datebase[$db_identifier]['port'].";dbname=".self::$datebase[$db_identifier]['dbname'];
             $options = array(
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES ".self::$datebase[$db_identifier]['charset'],
             PDO::ATTR_PERSISTENT => true,//持久连接,缓存连接,加快速度
             ); 
-
             $pdo = new PDO($dsn, self::$datebase[$db_identifier]['username'], self::$datebase[$db_identifier]['password'], $options); 
+            
             return $pdo;
     }
 
@@ -36,73 +64,42 @@ class Mysql{
     /*
      * 执行一条sql语句,一般用作insert update delete,查询请用query
      * 返回: 正确执行返回受影响的记录条数. 错误返回false;
-     * $db_identifier, 数据库标识符(database.php配置里填写的那个标识符)
+     *
      * $sql SQL语句
-     *$ret = $this->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")','db1');
-     *$ret = $this->exec('DELETE from user where name ="mary"','db1');
-     *$ret = $this->exec('update user set age = 39 where name ="mary"','db1');
+     *$ret = $db->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")');//只配置了一个数据库,就无需useDb
+     *$ret = $db->useDB('db1')->exec('DELETE from user where name ="mary"');//有多个数据库的时候,必须指明使用哪个
+     *$ret = $db->useDB('db2')->exec('update user set age = 39 where name ="mary");
      */
-    public function exec($sql,$db_identifier=null){
+    public function exec($sql){
       if(empty($sql))
           return false;
-      if($this->one_db){
-          $num = $this->pdo[0]->exec($sql);
+      if($this->cur_connect){
+          return $this->cur_connect->exec($sql);
       }
-      else if(!empty($db_identifier) && isset($this->pdo[$db_identifier]) ){ //已经建立过连接
-         $num = $this->pdo[$db_identifier]->exec($sql);
+      else{
+          throw new \Exception(" 数据库未配置或配置错误,请到 ".get_module()." 模块目录下的datebase.php里进行正确设置 !" );
       }
-      else //尚未建立连接
-      {
-            if(empty($db_identifier)){
-                throw new \Exception('exec 缺少参数: $db_identifier');
-                return false; //没有找到该数据库的配置               
-            }
-            if(array_key_exists($db_identifier, self::$datebase)){
-            $this->pdo[$db_identifier] = $this->connectDb($db_identifier);
-            $num = $this->pdo[$db_identifier]->exec($sql);
-            }
-            else{
-                throw new \Exception('配置文件里没有找到 '.$db_identifier.' 的配置信息!');
-                return false; //没有找到该数据库的配置
-            }
-      }
-      return $num;
     }
     
     
     /*
      * 封装过的查询语句
      * 返回键值对关联形式的二维数组
-     * $db_identifier, 数据库标识符(database.php配置里填写的那个标识符)
+     * 
      * $sql SQL语句
-     * $this->query('select name from user','db2');
+     * $db->query('select name from user');//配置里只有一个数据库
+     * $db->useDB('db1')->query('select name from user');//有多个数据库的时候,必须指明使用哪个
      */
-    public function query($sql,$db_identifier=null){
+    public function query($sql){
       if(empty($sql))          
           return false;  
-      if($this->one_db){
-          $pdostatement = $this->pdo[0]->query($sql,PDO::FETCH_ASSOC);
-      }
-      else if(!empty($db_identifier) && isset($this->pdo[$db_identifier]) ){ //已经建立过连接
-         $pdostatement = $this->pdo[$db_identifier]->query($sql,PDO::FETCH_ASSOC);
-      }
-      else //尚未建立连接
-      {
-            if(empty($db_identifier)){
-                throw new \Exception('query 缺少参数: $db_identifier');
-                return false; //没有找到该数据库的配置               
-            }
-            if(array_key_exists($db_identifier, self::$datebase)){
-            $this->pdo[$db_identifier] = $this->connectDb($db_identifier);
-            $pdostatement = $this->pdo[$db_identifier]->query($sql,PDO::FETCH_ASSOC);
-            }
-            else{
-                throw new \Exception('配置文件里没有找到 '.$db_identifier.' 的配置信息!');
-                return false; //没有找到该数据库的配置
-            }
-      }
+      if($this->cur_connect){
+          $pdostatement = $this->cur_connect->query($sql,PDO::FETCH_ASSOC);
+      }else
+        throw new \Exception(" 数据库未配置或配置错误,请到 ".get_module()." 模块目录下的datebase.php里进行正确设置 !" );
+
          if(false!==$pdostatement){
-         foreach ($pdostatement as $value) {
+         foreach ($pdostatement as $value) { //将返回的数据封装到一个二维数组里
            $result[]=$value;  
             }
          }else
@@ -115,8 +112,8 @@ class Mysql{
      * 原生query语句
      */
     public function original_query($statement){
-             if($this->one_db){
-                 return $this->pdo[0]->query($statement);
+             if($this->cur_connect){
+                 return $this->cur_connect->query($statement);
          
          }
          
@@ -128,7 +125,7 @@ class Mysql{
      */
     public static function set_datebase($array){
        foreach($array as $key=>$value){
-           if(count($value)<6)
+           if(count($value)<6) //mysql数据库的配置参数需要6个,不可以少
                continue;
            else
                self::$datebase[$key]=$value;
