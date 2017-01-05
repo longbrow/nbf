@@ -171,6 +171,7 @@ class App {
         //读取数据库配置参数,并赋值给相应的数据库模型
         if (is_file(APPLICATION_PATH . $real_mca[0] . DS . 'datebase.php')) {
             $datebase = require APPLICATION_PATH . $real_mca[0] . DS . 'datebase.php';
+            array_change_key_case($datebase);//将数据库的key设置成小写
             //可能有多种数据库同时使用的情况,所以要分别处理
             if (array_key_exists("mysql", $datebase)) {//使用了mysql
                 if (count($datebase['mysql']) > 0)
