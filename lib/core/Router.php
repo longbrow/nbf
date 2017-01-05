@@ -185,7 +185,7 @@ class Router{
             $new_url = rtrim($new_url,'/').$suffix;
             
           }else{//无参数
-            $new_url = '/'.trim(self::$makeurl[$new_mca],'/').$suffix;  
+            $new_url = '/'.trim(self::$makeurl[$new_mca]['pattern'],'/').$suffix;  
           }
       }else{
           //路由规则里没有,就生成正常的pathinfo地址
