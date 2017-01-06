@@ -48,7 +48,7 @@ class Mysql{
      */
     protected function connectDb($db_identifier){
             if(!isset(self::$datebase[$db_identifier])){
-                throw new \Exception(get_module()." 模块下的datebase.php文件里,没有找到 ".$db_identifier .' 的配置信息!' );
+                throw new \Exception(nbf()->get_module()." 模块下的datebase.php文件里,没有找到 ".$db_identifier .' 的配置信息!' );
             }
             $dsn = "mysql:host=".self::$datebase[$db_identifier]['host'].";port=".self::$datebase[$db_identifier]['port'].";dbname=".self::$datebase[$db_identifier]['dbname'];
             $options = array(
@@ -77,7 +77,11 @@ class Mysql{
           return $this->cur_connect->exec($sql);
       }
       else{
-          throw new \Exception(" 数据库未配置或配置错误,请到 ".get_module()." 模块目录下的datebase.php里进行正确设置 !" );
+          if(count(self::$datebase)>1){
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+          }else{
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里进行正确设置 !" );   
+          }
       }
     }
     
@@ -95,8 +99,13 @@ class Mysql{
           return false;  
       if($this->cur_connect){
           $pdostatement = $this->cur_connect->query($sql,PDO::FETCH_ASSOC);
-      }else
-        throw new \Exception(" 数据库未配置或配置错误,请到 ".get_module()." 模块目录下的datebase.php里进行正确设置 !" );
+      }else{
+         if(count(self::$datebase)>1){
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+          }else{
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里进行正确设置 !" );   
+          }
+      }
 
          if(false!==$pdostatement){
          foreach ($pdostatement as $value) { //将返回的数据封装到一个二维数组里

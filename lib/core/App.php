@@ -4,9 +4,7 @@ namespace core;
 
 use core\Response;
 use core\Router;
-
-require __DIR__ . DS . 'common.php'; //加载框架内置全局函数
-
+require __DIR__.DS.'helper.php'; //加载全局内置函数
 class App {
 
     public static $app_var = []; //存储module controller action等信息
