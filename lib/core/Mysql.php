@@ -23,7 +23,7 @@ class Mysql{
      */
     public function useConfig($db_identifier){
         if(empty($db_identifier)){ //为空,查找默认数据库
-
+              if($db_identifier!=0)
               throw new \Exception(" useConfig() 参数不能为空 !" );
               
           }

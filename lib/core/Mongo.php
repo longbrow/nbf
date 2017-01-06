@@ -36,7 +36,7 @@ class Mongo {
      */
     public function useConfig($db_identifier){
         if(empty($db_identifier)){ //为空,查找默认数据库
-
+              if($db_identifier!=0)
               throw new \Exception(" useConfig() 参数不能为空 !" );
               
           }
@@ -65,7 +65,7 @@ class Mongo {
      */
     public function ns($db_namespace){
         if(empty($db_namespace)){
-            throw new \Exception(" useConfig() 参数不能为空 !" );
+            throw new \Exception(" ns() 参数不能为空 !" );
         }
         if(empty($this ->manager)){ //管理器还没有创建
            throw new \Exception(" 管理器不存在,请先使用 useConfig() 创建管理器!" ); 
