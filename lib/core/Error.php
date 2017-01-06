@@ -69,6 +69,7 @@ class Error {
         }
         $i = 0;
         $handle = fopen($filepath, 'r');
+        if(!headers_sent())
         header("Content-type:text/html; charset=utf-8");
 
         echo "<div style='background: #F5F5F5;border:1px solid #ddd'>"

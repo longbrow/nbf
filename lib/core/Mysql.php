@@ -11,6 +11,7 @@ class Mysql{
         if(count(self::$datebase)==1){
              $db_identifier=array_keys(self::$datebase);//取出数据库标识符
              $this->cur_connect = $this->connectDb($db_identifier[0]);//创建pdo实例
+             $this ->pdo[$db_identifier[0]] = $this->cur_connect;
            
         }
       
@@ -20,10 +21,10 @@ class Mysql{
      * $db_identifier 代表database里设置的数据库标识
      * 返回一个数据库连接后的实例对象本身
      */
-    public function useDb($db_identifier){
+    public function useConfig($db_identifier){
         if(empty($db_identifier)){ //为空,查找默认数据库
 
-              throw new \Exception(" useDb() 参数不能为空 !" );
+              throw new \Exception(" useConfig() 参数不能为空 !" );
               
           }
         
@@ -48,7 +49,7 @@ class Mysql{
      */
     protected function connectDb($db_identifier){
             if(!isset(self::$datebase[$db_identifier])){
-                throw new \Exception(nbf()->get_module()." 模块下的datebase.php文件里,没有找到 ".$db_identifier .' 的配置信息!' );
+                throw new \Exception(nbf()->get_module()." 模块下的datebase.php文件mysql配置里,没有找到 ".$db_identifier .' 的配置信息!' );
             }
             $dsn = "mysql:host=".self::$datebase[$db_identifier]['host'].";port=".self::$datebase[$db_identifier]['port'].";dbname=".self::$datebase[$db_identifier]['dbname'];
             $options = array(
@@ -66,7 +67,7 @@ class Mysql{
      * 返回: 正确执行返回受影响的记录条数. 错误返回false;
      *
      * $sql SQL语句
-     *$ret = $db->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")');//只配置了一个数据库,就无需useDb
+     *$ret = $db->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")');//只配置了一个数据库,就无需useConfig
      *$ret = $db->useDB('db1')->exec('DELETE from user where name ="mary"');//有多个数据库的时候,必须指明使用哪个
      *$ret = $db->useDB('db2')->exec('update user set age = 39 where name ="mary");
      */
@@ -78,9 +79,9 @@ class Mysql{
       }
       else{
           if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
           }else{
-           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里进行正确设置 !" );   
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里mysql部分进行正确设置 !" );   
           }
       }
     }
@@ -101,9 +102,9 @@ class Mysql{
           $pdostatement = $this->cur_connect->query($sql,PDO::FETCH_ASSOC);
       }else{
          if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
           }else{
-           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里进行正确设置 !" );   
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
           }
       }
 
