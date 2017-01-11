@@ -89,7 +89,7 @@ class App {
     public static function start_session() {
         if (isset(self::$config['session_start'])) {
             if (self::$config['session_start']) {
-                my_session_start();
+                nbf()->my_session_start();
             }
         }
     }
