@@ -54,6 +54,8 @@ class Error {
                 self::show_err_jump ($_error['type']);
             
         }
+     
+        
         
     }
 
@@ -105,6 +107,7 @@ class Error {
     
     //生产环境下跳转到一个不显示错误详情的页面上
     public static function show_err_jump($code){
+        if(!headers_sent())
         header("Content-type:text/html; charset=utf-8");
         if($code != ERR_ROUTER)
             $notice ="矮油! 访问出错了?!";

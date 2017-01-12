@@ -6,7 +6,8 @@ use core\Response;
 use core\Router;
 require __DIR__.DS.'helper.php'; //加载全局内置函数
 class App {
-
+    public static $nbf = NULL; //存储common对象实例,节省内存
+    public static $validate = NULL;//存储validate对象实例
     public static $app_var = []; //存储module controller action等信息
     public static $config = []; //项目配置文件 config.php
     public static $use_router = false; //是否启用路由
@@ -24,6 +25,7 @@ class App {
 
 //跳转到404
     public static function jump_notFound() {
+        if(!headers_sent())
         header("HTTP/1.1 404 Not Found");
         // header("Status: 404 Not Found");
     }
