@@ -122,8 +122,10 @@ class App {
             if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
                 if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
                 $_SERVER['PHP_SELF'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
-                else
+                else{
+                    $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
                     return $Response; //否则跳到默认页.
+                }
             }
 
             $pos = strpos($_SERVER['PHP_SELF'], '/', 1); //去掉/SCRIPT_NAME

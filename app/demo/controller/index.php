@@ -10,6 +10,6 @@ class index extends Controller{
 //        $this->assign("content", '模板输出测试');
 //        $this->assign("title", '模板标题');
 //        return $this -> fetch();//如果存在index.index.html模板页
-        return;//返回空,则显示内置默认页
+        return 'Hello World !';
     }
 }
