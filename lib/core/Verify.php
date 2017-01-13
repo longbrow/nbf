@@ -111,6 +111,11 @@ class Verify{
         $textColor = imagecolorallocate($newImg, $this ->text_red, $this ->text_green, $this ->text_blue);
         //写入文字
         imagettftext($newImg, $this ->fontSize,0, $this ->left, $this ->bottom,$textColor,$this->ttf,$verifyCode);
+        //记录验证码和时间到session里
+        if(nbf()-> is_session_started()==FALSE)
+            nbf()-> my_session_start ();
+        nbf()-> set_session('verifyCode', $verifyCode);
+        nbf()-> set_session('verifyTime', time());
         //将图片输出到缓存里
         ob_start();
         imagepng($newImg);
@@ -167,6 +172,12 @@ class Verify{
         $textColor = imagecolorallocate($newImg, $this ->text_red, $this ->text_green, $this ->text_blue);
         //写入文字
         imagettftext($newImg, $this ->fontSize,0, $this ->left, $this ->bottom,$textColor,$this->ttf,$verifyCode);
+        //记录验证码和时间到session里
+        if(nbf()-> is_session_started()==FALSE)
+            nbf()-> my_session_start ();
+        nbf()-> set_session('verifyCode', $verifyCode);
+        nbf()-> set_session('verifyTime', time());
+        
         //将图片输出到缓存里
         ob_start();
         imagepng($newImg);
@@ -178,5 +189,23 @@ class Verify{
         
         
     } 
+    
+    //检查验证码是否正确
+    //$code 收到用户提交的验证码字符串 string
+    //$expire 验证码过期时间,单位秒
+    //一旦session里记录的验证码距今超过这个时间间隔,则认为失效.
+    public function checkCode($code,$expire=30){
+      if(nbf()-> is_session_started()==FALSE)
+      nbf()-> my_session_start ();  
+      $oldcode = isset($_SESSION['verifyCode'])? $_SESSION['verifyCode']:NULL;
+      $oldtime = isset($_SESSION['verifyTime'])? $_SESSION['verifyTime']:NULL;
+      if($oldcode && $oldtime){
+          if(strcasecmp($oldcode, $code)!==0 || (time()-$oldtime)>$expire)
+              return false;
+          else
+              return true;
+      }
+      return false;
+    }
     
 }

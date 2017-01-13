@@ -144,6 +144,19 @@ public function clear_session(){
     session_destroy();
 
 }
+//判断session是否开启
+public function is_session_started()
+{
+    if ( php_sapi_name() !== 'cli' ) {
+        if ( version_compare(phpversion(), '5.4.0', '>=') ) {
+            return session_status() === PHP_SESSION_ACTIVE ? TRUE : FALSE;
+        } else {
+            return session_id() === '' ? FALSE : TRUE;
+        }
+    }
+    return FALSE;
+}
+
 //根据路由规则生成url
 public function makeurl($mca,$arg=[],$suffix=''){
     if(App::$use_router){
