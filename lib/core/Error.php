@@ -31,7 +31,7 @@ class Error {
      * array    $errcontext
      *
      */
-    public static function error_handler($errno, $errstr, $errfile = '', $errline = 0, $errcontext = []) {
+    public static function error_handler($errno, $errstr, $errfile = '', $errline = 0, $errcontext = []) {   
         $code = $errno;
         $msg = htmlspecialchars($errstr);
         $line = $errline;
@@ -43,19 +43,20 @@ class Error {
             self::show_err_jump ($code);
     }
 
+
     public static function shutdown_handler() {
         //只要脚本停止,就会进入这里,所以要判断一下是否是发生致命错误了.只处理致命错误
-        if (!is_null($error = error_get_last()) && in_array($_error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE])) {
+        if (!is_null($error = error_get_last()) && in_array($error['type'], [E_COMPILE_WARNING,E_CORE_WARNING,E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE])) {
+            
             $e = new \Exception();
             $trace = $e->getTraceAsString();
             if(isset(App::$config['debug'])?App::$config['debug']:false)
-            self::show_error($_error['type'], $_error['file'], $_error['line'], $_error['message'], $trace);
+            self::show_error($error['type'], $error['file'], $error['line'], $error['message'], $trace);
             else
-                self::show_err_jump ($_error['type']);
+                self::show_err_jump ($error['type']);
             
         }
-     
-        
+
         
     }
 
@@ -79,7 +80,7 @@ class Error {
         . "<h2 style='border:1px solid #ddd;color:#D8BFD8;margin-top:0'>NBF Bug Report</h2>"
         . "<p style='font-size: 18px'><span style='color: #FF4500;font-weight:bold;font-size:22px'>[$code] Exception in</span> $file Line $line</p>"
         . "</div><div style='border:1px solid #ddd'><h2 style='margin-top:15px;margin-bottom:15px'>$msg</h2></div>";
-        echo "<div style='background: #F5F5F5;border:1px solid #ddd;'><ol start='$start_line' style='border:1px solid #ddd;overflow :auto;'>";
+        echo "<div style='background: #F5F5F5;border:1px solid #ddd;'><ol start='$start_line' style='border:1px solid #ddd;overflow :auto;padding-left:60px;'>";
         if ($handle) {
             while (!feof($handle)) {
                 $i++;

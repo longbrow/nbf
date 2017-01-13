@@ -54,6 +54,7 @@ class Loader{
         self::$map= [    'core'  => CORE_PATH,
                         APP_NAME   => APPLICATION_PATH,
                         'traits' => TRAIT_PATH,
+                        'lib'   => LIB_PATH,
                     ];
         
     }
