@@ -107,7 +107,7 @@ class Mysql{
            throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
           }
       }
-
+         $result = array();
          if(false!==$pdostatement){
          foreach ($pdostatement as $value) { //将返回的数据封装到一个二维数组里
            $result[]=$value;  
