@@ -60,6 +60,25 @@ public function get_method(){
     return $_SERVER['REQUEST_METHOD'];
 }
 
+//获取还原后的rul地址
+public function get_real_url(){
+    return APP::$real_url;
+}
+
+//获取当前使用的伪后缀
+public function get_suffix(){
+    return APP::$cur_suffix;
+}
+
+//获取分页标识符(形参)
+public function get_paging_tag(){
+    $tag = isset(APP::$config['paging_tag'])?APP::$config['paging_tag']:'pgid';
+    if(empty($tag)){
+        $tag = 'pgid';
+    }
+    return $tag;
+}
+
 //----------------cookie操作的系列函数----------------------------
 /*
  * 获取指定名称的cookie

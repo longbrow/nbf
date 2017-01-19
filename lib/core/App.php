@@ -11,7 +11,8 @@ class App {
     public static $app_var = []; //存储module controller action等信息
     public static $config = []; //项目配置文件 config.php
     public static $use_router = false; //是否启用路由
-
+    public static $real_url = '';//经过路由转换后的真实的URL
+    public static $cur_suffix='';//当前使用的伪后缀
     /*
      * 将全局配置文件加载到$config里
      */
@@ -141,13 +142,17 @@ class App {
             foreach (self::$config['suffix'] as &$value) {
                 $value = strtolower($value); //将用户定义后缀全转换成小写
             }
-            if (in_array($suffix, self::$config['suffix']))
+            if (in_array($suffix, self::$config['suffix'])){
                 $mca = substr($mca, 0, $pos);
+                self::$cur_suffix = "." . $suffix; //将当前使用的伪后缀保存下来,加了'.',供分页功能使用
+            }
         }
         $mca = trim(strtolower($mca), '/'); //全部转成小写,为了正则的精确匹配,并去掉前后的'/'
         //这里到路由映射数组里进行比对还原
-        if (self::$use_router)
+        if (self::$use_router){
             $mca = Router::parse_url($mca, $method);
+        }
+        self::$real_url = $mca;//将经过路由转换过的真实的request请求保存下来
         $mca = ltrim($mca, '/');
         $mca_arr = explode('/', $mca); //将url分割成数组
         //判断一下m-c-a是否符合要求
