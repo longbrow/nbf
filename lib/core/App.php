@@ -114,11 +114,13 @@ class App {
         $method = $_SERVER['REQUEST_METHOD']; //get /post /put /delete
         //进行路由解析
         if (strpos($_SERVER['QUERY_STRING'], 's=') === 0) { //rewrite模式!query_string是?s=/admin/index/test....
-            $mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?已经被浏览器去掉了
-            if (false !== $pos = strpos($mca, '&')) //去掉&的情况
-                $mca = substr($mca, 0, $pos);
-            if (false !== $pos = strpos($mca, '?'))//去掉?的情况
-                $mca = substr($mca, 0, $pos);
+
+            $mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了
+            $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
+//            if (false !== $pos = strpos($mca, '&')) //去掉&的情况
+//                $mca = substr($mca, 0, $pos);
+//            if (false !== $pos = strpos($mca, '?'))//去掉?的情况
+//                $mca = substr($mca, 0, $pos);
         }else {//pathinfo模式
             if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
                 if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
@@ -218,7 +220,7 @@ class App {
             $_GET = $args; //给$_GET也保留一份键值对的参数
         } else {
             //参数错误
-            throw new \InvalidArgumentException('方法的参数错误!');
+            throw new \InvalidArgumentException(nbf()-> get_module()."/".nbf()-> get_controller()."/". nbf()-> get_action().' 方法的参数不匹配!');
             die;
         }
 
@@ -291,7 +293,7 @@ class App {
                 } elseif ($param->isDefaultValueAvailable()) {//没有实参,就取默认值
                     $args[] = $param->getDefaultValue();
                 } else {
-                    throw new \InvalidArgumentException('方法缺少参数: ' . $name);
+                    throw new \InvalidArgumentException(nbf()-> get_module()."/".nbf()-> get_controller()."/". nbf()-> get_action().' 方法的参数不匹配!');
                 }
             }
         }
