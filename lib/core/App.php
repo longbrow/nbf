@@ -117,10 +117,9 @@ class App {
 
             $mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了
             $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
-//            if (false !== $pos = strpos($mca, '&')) //去掉&的情况
-//                $mca = substr($mca, 0, $pos);
-//            if (false !== $pos = strpos($mca, '?'))//去掉?的情况
-//                $mca = substr($mca, 0, $pos);
+            if(FALSE!=strpos($mca, "//")){
+                $mca = preg_replace("/[^\/]+\/\//", "", $mca);//去掉form提交空参数(无值)的情况出现//,例如:/admin/control/action/k1/v1/k2//k3/v3
+              }
         }else {//pathinfo模式
             if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
                 if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
