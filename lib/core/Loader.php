@@ -10,20 +10,20 @@ class Loader{
             if(array_key_exists($top_path, self::$map)){
                 $newclsname = str_replace("\\",DS, $classname);
                 $newclsname = str_replace($top_path.DS, self::$map[$top_path], $newclsname);
-                if(is_file($newclsname.EXT)){
+                if(file_exists_case($newclsname.EXT)){
                 include $newclsname.EXT;
                 return true;
-                }elseif(is_file ($newclsname.'.class'.EXT)){//支持一下controller.class.php这种形式的命名
+                }elseif(file_exists_case ($newclsname.'.class'.EXT)){//支持一下controller.class.php这种形式的命名
                  include $newclsname.'.class'.EXT;   
                  return true;
                 }
             }else{ //到extend里查找
                 $newclsname = str_replace("\\",DS, $classname);
                 $newclsname = EXTEND_PATH.$newclsname;
-                if(is_file($newclsname.EXT)){
+                if(file_exists_case($newclsname.EXT)){
                 include $newclsname.EXT;
                 return true;
-                }elseif(is_file ($newclsname.'.class'.EXT)){//支持一下controller.class.php这种形式的命名
+                }elseif(file_exists_case ($newclsname.'.class'.EXT)){//支持一下controller.class.php这种形式的命名
                  include $newclsname.'.class'.EXT;   
                  return true;
                 }
@@ -36,7 +36,7 @@ class Loader{
                   return true;   
                 }
 
-            if(is_file(__DIR__.DS.$classname.EXT)){
+            if(file_exists_case(__DIR__.DS.$classname.EXT)){
             include __DIR__.DS.$classname.EXT;
             return true;
             }

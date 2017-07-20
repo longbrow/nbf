@@ -52,6 +52,22 @@ defined('IS_WIN') or define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 //date_default_timezone_set("Etc/GMT+8");//这里比林威治标准时间慢8小时 
 //date_default_timezone_set("Etc/GMT-8");//这里比林威治标准时间快8小时 
 date_default_timezone_set('PRC'); //设置中国时区 
+
+//区分大小写判断文件是否存在
+function file_exists_case($filename) {
+    if (is_file($filename)) {
+        if (strstr(PHP_OS, 'WIN')) {
+            if (basename(realpath($filename)) != basename($filename))
+                return false;
+            else if(dirname(realpath($filename)) != dirname($filename))
+                return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+
 //创建runtime 目录
 if(!file_exists(RUNTIME_PATH))
 mkdir(RUNTIME_PATH);

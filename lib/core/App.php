@@ -18,7 +18,7 @@ class App {
      */
 
     public static function set_config($cfg_file) {
-        if (is_file($cfg_file)) {
+        if (file_exists_case($cfg_file)) {
             self::$config = require $cfg_file;
             array_change_key_case(self::$config);
         }
@@ -35,10 +35,10 @@ class App {
      * 解析MCA的格式是否符合规范
      */
 
-    public static function parse_mca($mca, $mca_arr) {
+    public static function parse_mca($mca_arr) {
         if (is_dir(APPLICATION_PATH . $mca_arr[0])) { //如果模块存在,就马上读取config
                   //读取项目配置文件
-            if (is_file(APPLICATION_PATH . $mca_arr[0] . DS . 'config.php')) {
+            if (file_exists_case(APPLICATION_PATH . $mca_arr[0] . DS . 'config.php')) {
                 $config = require APPLICATION_PATH . $mca_arr[0] . DS . 'config.php';
                 array_change_key_case($config);
                 self::$config = array_merge(self::$config, $config); //覆盖全局设置中的部分内容
@@ -75,7 +75,7 @@ class App {
                     throw new \Exception("模块 [$mca_arr[0]] 不存在!");
                     die;
                 }
-                if (!is_file(APPLICATION_PATH . $mca_arr[0] . DS . 'controller' . DS . $mca_arr[1] . EXT)) {
+                if (!file_exists_case(APPLICATION_PATH . $mca_arr[0] . DS . 'controller' . DS . $mca_arr[1] . EXT)) {
                     self::jump_notFound();
                     throw new \Exception("控制器 [$mca_arr[1]] 不存在!");
                     exit;
@@ -135,30 +135,28 @@ class App {
             if (false !== $pos = strpos($mca, '&')) //去掉&的情况
                 $mca = substr($mca, 0, $pos);
         }
-
+        
         //处理一下伪静态后缀
         if (false !== $pos = strrpos($mca, '.')) {
-            $suffix = strtolower(substr($mca, $pos + 1)); //取出后缀,并转成小写
+            $suffix = substr($mca, $pos + 1); //取出后缀
             //判断是否是定义过的伪后缀
-            foreach (self::$config['suffix'] as &$value) {
-                $value = strtolower($value); //将用户定义后缀全转换成小写
-            }
-            if (in_array($suffix, self::$config['suffix'])){
-                $mca = substr($mca, 0, $pos);
+            $suffix_str = implode("|", self::$config['suffix']);//将所有后缀名取出来,用|分割,组合成字符串
+            $pattern = "/" .$suffix ."/i";//忽略大小写
+            if(preg_match($pattern, $suffix_str)){ //如果能匹配上,说明是伪后缀
+                $mca = substr($mca, 0, $pos); //去掉伪后缀后的url
                 self::$cur_suffix = "." . $suffix; //将当前使用的伪后缀保存下来,加了'.',供分页功能使用
             }
         }
-        $mca = trim(strtolower($mca), '/'); //全部转成小写,为了正则的精确匹配,并去掉前后的'/'
+        $mca = trim($mca, '/'); //为了正则的精确匹配,并去掉前后的'/'
         //这里到路由映射数组里进行比对还原
         if (self::$use_router){
-            $mca = Router::parse_url($mca, $method);
+            $mca = Router::parse_url($mca);
         }
         self::$real_url = $mca;//将经过路由转换过的真实的request请求保存下来
         $mca = ltrim($mca, '/');
         $mca_arr = explode('/', $mca); //将url分割成数组
         //判断一下m-c-a是否符合要求
-        self::parse_mca($mca, $mca_arr);
-
+        self::parse_mca($mca_arr);
 
 
         $real_mca = array_splice($mca_arr, 0, 3); //提取出前面的模块/控制器/方法,原数组就剩下参数了
@@ -172,12 +170,12 @@ class App {
         //启动session
         self::start_session();
         //加载项目全局函数文件
-        if (is_file(APPLICATION_PATH . $real_mca[0] . DS . 'common.php')) {
+        if (file_exists_case(APPLICATION_PATH . $real_mca[0] . DS . 'common.php')) {
             require APPLICATION_PATH . $real_mca[0] . DS . 'common.php';
         }
 
         //读取数据库配置参数,并赋值给相应的数据库模型
-        if (is_file(APPLICATION_PATH . $real_mca[0] . DS . 'datebase.php')) {
+        if (file_exists_case(APPLICATION_PATH . $real_mca[0] . DS . 'datebase.php')) {
             $datebase = require APPLICATION_PATH . $real_mca[0] . DS . 'datebase.php';
             array_change_key_case($datebase);//将数据库的key设置成小写
             //可能有多种数据库同时使用的情况,所以要分别处理
@@ -191,7 +189,7 @@ class App {
             }
             if (array_key_exists("redis", $datebase)) {//使用了redis
                 if (count($datebase['redis']) > 0)
-                    \core\Redis::set_datebase($datebase['redis']);
+                    \core\RedisClt::set_datebase($datebase['redis']);
             }
             if (array_key_exists("memcache", $datebase)) {//使用了memcache
                 if (count($datebase['memcache']) > 0)
@@ -202,6 +200,7 @@ class App {
         define('TPL_PATH', APPLICATION_PATH . $real_mca[0] . DS . 'view' . DS); //定义模板存放的目录
         define('TPL_DEFAULT_NAME', $real_mca[1] . '.' . $real_mca[2] . '.html'); //模板文件的默认名,控制器.方法.html 形式
         //提取参数,并组合成键值对形式的关联数组
+        
         if (count($mca_arr) == 0) {
             $args = []; //无参数
         } elseif (count($mca_arr) % 2 == 0) {
@@ -216,6 +215,7 @@ class App {
                 }
             }
             $args = array_combine($keys, $values); //组合参数-参数名->值
+            
             $_GET = $args; //给$_GET也保留一份键值对的参数
         } else {
             //参数错误

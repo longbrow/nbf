@@ -2482,7 +2482,7 @@ class PHPMailer
     public function addAttachment($path, $name = '', $encoding = 'base64', $type = '', $disposition = 'attachment')
     {
         try {
-            if (!@is_file($path)) {
+            if (!@file_exists_case($path)) {
                 throw new \Exception($this->lang('file_access') . $path, self::STOP_CONTINUE);
             }
 
@@ -3006,7 +3006,7 @@ class PHPMailer
      */
     public function addEmbeddedImage($path, $cid, $name = '', $encoding = 'base64', $type = '', $disposition = 'inline')
     {
-        if (!@is_file($path)) {
+        if (!@file_exists_case($path)) {
             $this->setError($this->lang('file_access') . $path);
             return false;
         }
