@@ -114,26 +114,28 @@ class App {
         $method = $_SERVER['REQUEST_METHOD']; //get /post /put /delete
         //进行路由解析
         if (strpos($_SERVER['QUERY_STRING'], 's=') === 0) { //rewrite模式!query_string是?s=/admin/index/test....
+            //$mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了.$_SERVER['QUERY_STRING']会改写参数内容,比如//会被改成/,所以不能用
+            $mca = $_SERVER["REQUEST_URI"];//这里就是去掉域名后的字符串 /admin/index/test/arg/arv
 
-            $mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了
-            $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
-            if(FALSE!=strpos($mca, "//")){
-                $mca = preg_replace("/[^\/]+\/\//", "", $mca);//去掉form提交空参数(无值)的情况出现//,例如:/admin/control/action/k1/v1/k2//k3/v3
-              }
         }else {//pathinfo模式
             if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
                 if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
-                $_SERVER['PHP_SELF'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
+                $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
                 else{
                     $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
                     return $Response; //否则跳到默认页.
                 }
             }
+            $script_name_len = strlen($_SERVER['SCRIPT_NAME']);
+            $mca = substr($_SERVER["REQUEST_URI"], $script_name_len);
 
-            $pos = strpos($_SERVER['PHP_SELF'], '/', 1); //去掉/SCRIPT_NAME
-            $mca = substr($_SERVER['PHP_SELF'], $pos);
-            if (false !== $pos = strpos($mca, '&')) //去掉&的情况
-                $mca = substr($mca, 0, $pos);
+        }
+        
+        //对mca进行修整
+        $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
+
+        if(FALSE!=strpos($mca, "//")){
+            $mca = preg_replace("/[^\/]+\/\//", "", $mca);//去掉form提交空参数(无值)的情况出现//,例如:/admin/control/action/k1/v1/k2//k3/v3
         }
         
         //处理一下伪静态后缀
@@ -141,12 +143,13 @@ class App {
             $suffix = substr($mca, $pos + 1); //取出后缀
             //判断是否是定义过的伪后缀
             $suffix_str = implode("|", self::$config['suffix']);//将所有后缀名取出来,用|分割,组合成字符串
-            $pattern = "/" .$suffix ."/i";//忽略大小写
-            if(preg_match($pattern, $suffix_str)){ //如果能匹配上,说明是伪后缀
+            //$pattern = "/" .$suffix ."/i";//忽略大小写
+            if(FALSE!=stripos($suffix_str,$suffix)){ //如果能匹配上,说明是伪后缀
                 $mca = substr($mca, 0, $pos); //去掉伪后缀后的url
                 self::$cur_suffix = "." . $suffix; //将当前使用的伪后缀保存下来,加了'.',供分页功能使用
             }
         }
+        
         $mca = trim($mca, '/'); //为了正则的精确匹配,并去掉前后的'/'
         //这里到路由映射数组里进行比对还原
         if (self::$use_router){
