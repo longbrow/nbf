@@ -1,6 +1,7 @@
 <?php
 namespace core;
-use \PDO;
+use PDO;
+use PDOException;
 class Mysql{
 
     protected static $datebase =[];//可能多个配置
@@ -54,10 +55,12 @@ class Mysql{
             $dsn = "mysql:host=".self::$datebase[$db_identifier]['host'].";port=".self::$datebase[$db_identifier]['port'].";dbname=".self::$datebase[$db_identifier]['dbname'];
             $options = array(
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES ".self::$datebase[$db_identifier]['charset'],
-            PDO::ATTR_PERSISTENT => true,//持久连接,缓存连接,加快速度
+            PDO::ATTR_PERSISTENT => FALSE,//TRUE为持久连接,缓存连接,加快速度,但有问题,不建议
+                //持久连接需要到mysql里去配置一下,将wait_timeout=7200 或更长的值
+                //否则有可能因为超时断开长连接,导致出错
             ); 
             $pdo = new PDO($dsn, self::$datebase[$db_identifier]['username'], self::$datebase[$db_identifier]['password'], $options); 
-            
+            $pdo-> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $pdo;
     }
 
@@ -75,7 +78,11 @@ class Mysql{
       if(empty($sql))
           return false;
       if($this->cur_connect){
+          try{
           return $this->cur_connect->exec($sql);
+          }catch (PDOException $e){
+            throw new PDOException($e-> getMessage()."<br/>语句:" . $sql);   
+          }
       }
       else{
           if(count(self::$datebase)>1){
@@ -86,7 +93,98 @@ class Mysql{
       }
     }
     
+    //用预处理语句的方式处理查询,防止sql注入
+    //使用方法:(sql语句里的参数名要跟bind数组里的键名一一对应,参数名必须用 ':'符号开头的形式)
+    // $sql = "delete from tb_name where gender=:sex and score=:grade";
+    // $bind = array(":sex"=>"男",":grade"=>80);自增字段值是NULL,比如":id"=>NULL
+    // $db->safe_exec($sql,$bind);
+    //正确返回影响记录的条数.
+    public function safe_exec($sql,$bind=[]){
+      if(empty($sql))
+          return false;
+     
+      if($this->cur_connect){
+          try{
+          $pdostatement = $this->cur_connect-> prepare($sql);
+          if($pdostatement===FALSE)
+              return FALSE;
+          //处理参数绑定
+          if(count($bind)>0){
+              foreach ($bind as $key=>$value){
+                  if(is_int($value) || is_bool($value))
+                      $ret_bind =$pdostatement-> bindValue ($key, $value, PDO::PARAM_INT);
+                  else
+                      $ret_bind =$pdostatement-> bindValue ($key, $value);
+                  if(!$ret_bind){
+                    throw new \Exception( "绑定参数 ".$key ." 时发生错误!" );  
+                  }
+              } 
+          }
+          $ret =$pdostatement-> execute();
+          if($ret===FALSE)
+              return FALSE;
+          else
+              return $pdostatement-> rowCount();//返回受到影响的记录条数
+          }
+          catch (PDOException $e){
+             throw new PDOException($e-> getMessage()."<br/>参数:".json_encode($bind));
+          }
+      }
+      else{
+          if(count(self::$datebase)>1){
+          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          }else{
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里mysql部分进行正确设置 !" );   
+          }
+      }
+    }
     
+    //用预处理语句的方式处理查询,防止sql注入
+   //使用方法:(sql语句里的参数名要跟bind数组里的键名一一对应,参数名必须用 ':'符号开头的形式)
+    //$sql = select * from tb_name where gender=:sex and score>:grade
+    // $bind = array(":sex"=>"男",":grade"=>80);自增字段值是NULL,比如":id"=>NULL
+    // $db->safe_query($sql,$bind);
+    //返回二维数组,每个子数组(关联数组,字段名=>值 的形式)都是一行记录
+    public function safe_query($sql,$bind=[]){
+          if(empty($sql))          
+          return false; 
+          if($this->cur_connect){
+          try{    
+          $pdostatement = $this->cur_connect-> prepare($sql);
+          if($pdostatement===FALSE)
+              return FALSE;
+          //处理参数绑定
+          if(count($bind)>0){
+              foreach ($bind as $key=>$value){
+                  if(is_int($value) || is_bool($value))
+                      $ret_bind =$pdostatement-> bindValue ($key, $value, PDO::PARAM_INT);
+                  else
+                      $ret_bind =$pdostatement-> bindValue ($key, $value);
+                  if(!$ret_bind){
+                    throw new \Exception( "绑定参数 ".$key ." 时发生错误!" );  
+                  }
+              } 
+          }
+          $ret =$pdostatement-> execute();
+          if($ret===FALSE)
+              return FALSE;
+          return $pdostatement->fetchAll(PDO::FETCH_ASSOC);
+          }
+          catch(PDOException $e){
+           throw new PDOException($e-> getMessage()."<br/>参数:".json_encode($bind));   
+          }
+      }else{
+         if(count(self::$datebase)>1){
+          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          }else{
+           throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
+          }
+      }
+    }
+
+
+
+
     /*
      * 封装过的查询语句
      * 返回键值对关联形式的二维数组
@@ -99,7 +197,11 @@ class Mysql{
       if(empty($sql))          
           return false;  
       if($this->cur_connect){
+          try{
           $pdostatement = $this->cur_connect->query($sql,PDO::FETCH_ASSOC);
+          }catch(PDOException $e){
+            throw new PDOException($e-> getMessage()."<br/>语句:" . $sql);  
+          }
       }else{
          if(count(self::$datebase)>1){
           throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
@@ -112,8 +214,7 @@ class Mysql{
          foreach ($pdostatement as $value) { //将返回的数据封装到一个二维数组里
            $result[]=$value;  
             }
-         }else
-             return false;
+         }
                
         return $result;
     }

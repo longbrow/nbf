@@ -108,28 +108,41 @@ class App {
                 self::$use_router = true;
             }
         }
+        //file_put_contents(ROOT_PATH.'debug/mca.txt', $_SERVER["PHP_SELF"]."--".$_SERVER['SCRIPT_NAME']."--".$_SERVER['QUERY_STRING']."--".$_SERVER['REQUEST_URI']);
         $Response = new Response();//定义一个返回对象
         if (isset($_SERVER['HTTP_REFERER']))
             $referer = $_SERVER['HTTP_REFERER'];
         $method = $_SERVER['REQUEST_METHOD']; //get /post /put /delete
-        //进行路由解析
-        if (strpos($_SERVER['QUERY_STRING'], 's=') === 0) { //rewrite模式!query_string是?s=/admin/index/test....
-            //$mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了.$_SERVER['QUERY_STRING']会改写参数内容,比如//会被改成/,所以不能用
-            $mca = $_SERVER["REQUEST_URI"];//这里就是去掉域名后的字符串 /admin/index/test/arg/arv
-
-        }else {//pathinfo模式
-            if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
-                if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
-                $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
-                else{
-                    $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
-                    return $Response; //否则跳到默认页.
-                }
-            }
-            $script_name_len = strlen($_SERVER['SCRIPT_NAME']);
-            $mca = substr($_SERVER["REQUEST_URI"], $script_name_len);
-
+        if(0===strpos($_SERVER["REQUEST_URI"],$_SERVER['SCRIPT_NAME'])){
+           $mca = substr($_SERVER["REQUEST_URI"], strlen($_SERVER['SCRIPT_NAME']));
+        }else if("/"==$_SERVER["REQUEST_URI"]){ //主页
+            if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
+            $mca = '/' . ltrim(self::$config['home'], '/');
+            else{
+                $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
+                return $Response; //否则跳到默认页.
+            } 
+        }else{ 
+            $mca = $_SERVER["REQUEST_URI"];
         }
+//        //进行路由解析
+//        if (strpos($_SERVER['QUERY_STRING'], 's=') === 0) { //rewrite模式!query_string是?s=/admin/index/test....
+//            //$mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了.$_SERVER['QUERY_STRING']会改写参数内容,比如//会被改成/,所以不能用
+//            $mca = $_SERVER["REQUEST_URI"];//这里就是去掉域名后的字符串 /admin/index/test/arg/arv
+//
+//        }else {//pathinfo模式
+//            if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
+//                if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
+//                $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
+//                else{
+//                    $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
+//                    return $Response; //否则跳到默认页.
+//                }
+//            }
+//            $script_name_len = strlen($_SERVER['SCRIPT_NAME']);
+//            $mca = substr($_SERVER["REQUEST_URI"], $script_name_len);
+//
+//        }
         
         //对mca进行修整
         $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
