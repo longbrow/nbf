@@ -74,7 +74,10 @@ class Error {
         $handle = fopen($filepath, 'r');
         if(!headers_sent())
         header("Content-type:text/html; charset=utf-8");
-
+               //将内容保存到缓存里,否则display方法直接就输出到页面了
+       ob_start();
+       ob_implicit_flush(0);
+       
         echo "<div style='background: #F5F5F5;border:1px solid #ddd'>"
         . "<div style='border:1px solid #ddd'>"
         . "<h2 style='border:1px solid #ddd;color:#D8BFD8;margin-top:0'>NBF Bug Report</h2>"
@@ -103,6 +106,24 @@ class Error {
         echo "</ol></div><h3 style='font-size: 22px;color: #FF4500;margin:0'>Call stack :</h3>";
         echo "<div style='background: #F5F5F5;border:1px solid #ddd;font-size:18px;color:#6A5ACD;overflow :auto'><pre>$trace</pre></div>";
         echo "</div>";
+        $content = ob_get_clean();//取出缓存
+        //是否启用错误日志记录
+        if(isset(App::$config['err_log'])?App::$config['err_log']:TRUE){
+            if(! file_exists(ROOT_PATH."logs")){
+                mkdir(ROOT_PATH."logs");
+            }
+            $filename = ROOT_PATH."logs".DS."err_".date("Ymd").".log";
+            if(FALSE!=$handle=fopen($filename,"a+")){  
+                fwrite($handle,"-- ".date("H:i:s")." --".PHP_EOL); 
+                fwrite($handle, "File: ".$file." line ".$line."; errcode: ".$code."; method: '". $_SERVER['REQUEST_METHOD']."'" .PHP_EOL);
+                fwrite($handle, "Msg:  ".$msg.PHP_EOL);
+                fwrite($handle, "URI:  ".$_SERVER["REQUEST_URI"].PHP_EOL);
+                fwrite($handle, PHP_EOL);
+                fclose($handle);
+                }
+
+        }
+        echo $content;
         die;
     }
     
