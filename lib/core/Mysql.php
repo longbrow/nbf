@@ -22,10 +22,10 @@ class Mysql{
      * $db_identifier 代表database里设置的数据库标识
      * 返回一个数据库连接后的实例对象本身
      */
-    public function useConfig($db_identifier){
+    public function useDb($db_identifier){
         if(empty($db_identifier)){ //为空,查找默认数据库
               if($db_identifier!=0)
-              throw new \Exception(" useConfig() 参数不能为空 !" );
+              throw new \Exception(" useDb() 参数不能为空 !" );
               
           }
         
@@ -70,7 +70,7 @@ class Mysql{
      * 返回: 正确执行返回受影响的记录条数. 错误返回false;
      *
      * $sql SQL语句
-     *$ret = $db->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")');//只配置了一个数据库,就无需useConfig
+     *$ret = $db->exec('INSERT INTO user (name,age,sex) VALUES ("mary",40,"女")');//只配置了一个数据库,就无需useDb
      *$ret = $db->useDB('db1')->exec('DELETE from user where name ="mary"');//有多个数据库的时候,必须指明使用哪个
      *$ret = $db->useDB('db2')->exec('update user set age = 39 where name ="mary");
      */
@@ -81,12 +81,12 @@ class Mysql{
           try{
           return $this->cur_connect->exec($sql);
           }catch (PDOException $e){
-            throw new PDOException($e-> getMessage()."<br/>语句:" . $sql);   
+            throw new \Exception($e-> getMessage()."<br/>语句:" . $sql);   
           }
       }
       else{
           if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
           }else{
            throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里mysql部分进行正确设置 !" );   
           }
@@ -127,12 +127,12 @@ class Mysql{
               return $pdostatement-> rowCount();//返回受到影响的记录条数
           }
           catch (PDOException $e){
-             throw new PDOException($e-> getMessage()."<br/>参数:".json_encode($bind));
+             throw new \Exception($e-> getMessage()."<br>语句:".$sql."<br/>参数:".json_encode($bind));
           }
       }
       else{
           if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
           }else{
            throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里mysql部分进行正确设置 !" );   
           }
@@ -171,11 +171,11 @@ class Mysql{
           return $pdostatement->fetchAll(PDO::FETCH_ASSOC);
           }
           catch(PDOException $e){
-           throw new PDOException($e-> getMessage()."<br/>参数:".json_encode($bind));   
+           throw new \Exception($e-> getMessage()."<br>语句:".$sql."<br/>参数:".json_encode($bind));   
           }
       }else{
          if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
           }else{
            throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
           }
@@ -200,11 +200,11 @@ class Mysql{
           try{
           $pdostatement = $this->cur_connect->query($sql,PDO::FETCH_ASSOC);
           }catch(PDOException $e){
-            throw new PDOException($e-> getMessage()."<br/>语句:" . $sql);  
+            throw new Exception($e-> getMessage()."<br/>语句:" . $sql);  
           }
       }else{
          if(count(self::$datebase)>1){
-          throw new \Exception("存在多个数据库!请用 useConfig()方法,选择当前要使用哪个数据库!" );
+          throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
           }else{
            throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
           }
@@ -219,6 +219,51 @@ class Mysql{
         return $result;
     }
     
+    /*
+     * 开始事务
+     */
+    public function beginTransaction(){
+        if($this->cur_connect){ 
+          return  $this ->cur_connect-> beginTransaction();
+        } else{
+            if(count(self::$datebase)>1){
+                    throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+                    }else{
+                     throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
+                    }           
+        }     
+    }
+    
+    /*
+     * 提交事务
+     */
+    public function commit(){
+        if($this->cur_connect){ 
+          return  $this ->cur_connect-> commit();
+        } else{
+            if(count(self::$datebase)>1){
+                    throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+                    }else{
+                     throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
+                    }           
+        }     
+    }    
+
+ /*
+     * 回滚事务
+     */
+    public function rollBack(){
+        if($this->cur_connect){ 
+          return  $this ->cur_connect-> rollBack();
+        } else{
+            if(count(self::$datebase)>1){
+                    throw new \Exception("存在多个数据库!请用 useDb()方法,选择当前要使用哪个数据库!" );
+                    }else{
+                     throw new \Exception(" 数据库未配置或配置错误,请到 ".nbf()->get_module()." 模块目录下的datebase.php里的mysql部分进行正确设置 !" );   
+                    }           
+        }     
+    }        
+
     /*
      * 原生query语句
      */
