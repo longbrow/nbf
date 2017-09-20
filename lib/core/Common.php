@@ -188,4 +188,19 @@ public function makeurl($mca,$arg=[],$suffix=''){
           return rtrim($new_url,'/').$suffix;
     }
 }
+
+//判断是否ajax请求(jquery)
+/* 使用原生js做的时候,需要自己设置头部信息,保持与jquery一致
+ * var xmlhttp=new XMLHttpRequest(); 
+ *  xmlhttp.setRequestHeader("X-Requested-With","XMLHttpRequest"); 
+ */
+public function isAjax(){
+    if(isset($_SERVER["HTTP_X_REQUESTED_WITH"]) && strtolower($_SERVER["HTTP_X_REQUESTED_WITH"])=="xmlhttprequest"){ 
+        // ajax 请求的处理方式 
+        return TRUE;
+    }else{ 
+        // 正常请求的处理方式 
+        return FALSE;
+    }
+}
 }
