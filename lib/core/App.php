@@ -102,7 +102,7 @@ class App {
      */
 
     public static function Begin() {
-        if (isset(self::$config['url_router'])) {
+        if (isset(self::$config['url_router'])) { //读取路由配置
             if (self::$config['url_router']) {
                 Router::load_routerfile(APPLICATION_PATH . 'url.php');
                 self::$use_router = true;
@@ -113,9 +113,30 @@ class App {
         if (isset($_SERVER['HTTP_REFERER']))
             $referer = $_SERVER['HTTP_REFERER'];
         $method = $_SERVER['REQUEST_METHOD']; //get /post /put /delete
-        if(0===strpos($_SERVER["REQUEST_URI"],$_SERVER['SCRIPT_NAME'])){
-           $mca = substr($_SERVER["REQUEST_URI"], strlen($_SERVER['SCRIPT_NAME']));
-        }else if("/"==$_SERVER["REQUEST_URI"]){ //主页
+        
+        // url上的#字符后面的所有字符串都会被浏览器切除掉
+        //首先第一步搜索是否有?和&符号,进行分割
+        $pos1=strpos($_SERVER["REQUEST_URI"],'?');
+        $pos2=strpos($_SERVER["REQUEST_URI"],'&');
+        if($pos1!==FALSE && $pos2!==FALSE){
+            //如果两个符号都有,那么判断一下谁在前面
+            if($pos1<$pos2){
+                //?号在前
+             $URI = substr($_SERVER["REQUEST_URI"], 0,$pos1);   
+        }else{ //&号在前
+             $URI = substr($_SERVER["REQUEST_URI"], 0,$pos2);
+        }    
+        }else if($pos1!==FALSE && $pos2===FALSE){ //只有?号没有&
+            $URI = substr($_SERVER["REQUEST_URI"], 0,$pos1);
+        }else if($pos2!==FALSE && $pos1===FALSE){//只有&号没有?
+            $URI = substr($_SERVER["REQUEST_URI"], 0,$pos2);
+        }else{ //?和&都没有
+            $URI = $_SERVER["REQUEST_URI"];
+        }
+            
+        if(0===strpos($URI,$_SERVER['SCRIPT_NAME'])){//如果用/index.php/模块/控制器/方法/参数 方式访问
+           $mca = substr($URI, strlen($_SERVER['SCRIPT_NAME'])); //将/index.php这个字符串去掉
+        }else if("/"==$URI){ //主页
             if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
             $mca = '/' . ltrim(self::$config['home'], '/');
             else{
@@ -123,29 +144,11 @@ class App {
                 return $Response; //否则跳到默认页.
             } 
         }else{ 
-            $mca = $_SERVER["REQUEST_URI"];
+            $mca = $URI;
         }
-//        //进行路由解析
-//        if (strpos($_SERVER['QUERY_STRING'], 's=') === 0) { //rewrite模式!query_string是?s=/admin/index/test....
-//            //$mca = substr($_SERVER['QUERY_STRING'], 2); //去掉's=',?号已经被浏览器去掉了.$_SERVER['QUERY_STRING']会改写参数内容,比如//会被改成/,所以不能用
-//            $mca = $_SERVER["REQUEST_URI"];//这里就是去掉域名后的字符串 /admin/index/test/arg/arv
-//
-//        }else {//pathinfo模式
-//            if (strcasecmp(rtrim($_SERVER['PHP_SELF'],'/'), $_SERVER['SCRIPT_NAME']) == 0) { //无参数,根目录
-//                if(!empty(isset(self::$config['home'])?self::$config['home']:NULL)) //设置了主页就取主页地址
-//                $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'].'/' . ltrim(self::$config['home'], '/');
-//                else{
-//                    $Response->data = 'F5D82E8CDF76291B3BC8515651BB8141';//nbf的md5码,返回内置主页
-//                    return $Response; //否则跳到默认页.
-//                }
-//            }
-//            $script_name_len = strlen($_SERVER['SCRIPT_NAME']);
-//            $mca = substr($_SERVER["REQUEST_URI"], $script_name_len);
-//
-//        }
         
         //对mca进行修整
-        $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
+//        $mca = preg_replace("/[=&?]/", "/", $mca);//将&=?这3个字母替换成/ 分隔符,主要是为了兼容url的普通模式
 
         if(FALSE!=strpos($mca, "//")){
             $mca = preg_replace("/[^\/]+\/\//", "", $mca);//去掉form提交空参数(无值)的情况出现//,例如:/admin/control/action/k1/v1/k2//k3/v3
@@ -232,7 +235,8 @@ class App {
             }
             $args = array_combine($keys, $values); //组合参数-参数名->值
             
-            $_GET = $args; //给$_GET也保留一份键值对的参数
+//            $_GET = $args; //给$_GET也保留一份键值对的参数
+            $_GET = $args + $_GET;//将pathinfo格式的参数合并一份到$_GET里,参数同名的时候,以pathinfo的值优先
         } else {
             //参数错误
             throw new \InvalidArgumentException(nbf()-> get_module()."/".nbf()-> get_controller()."/". nbf()-> get_action().' 方法的参数不匹配!');

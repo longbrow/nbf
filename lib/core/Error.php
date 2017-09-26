@@ -115,6 +115,7 @@ class Error {
             $filename = ROOT_PATH."logs".DS."err_".date("Ymd").".log";
             if(FALSE!=$handle=fopen($filename,"a+")){  
                 fwrite($handle,"-- ".date("H:i:s")." --".PHP_EOL); 
+                fwrite($handle,"IP:   ".$_SERVER['REMOTE_ADDR'].PHP_EOL);
                 fwrite($handle, "File: ".$file." line ".$line."; errcode: ".$code."; method: '". $_SERVER['REQUEST_METHOD']."'" .PHP_EOL);
                 fwrite($handle, "Msg:  ".$msg.PHP_EOL);
                 fwrite($handle, "URI:  ".$_SERVER["REQUEST_URI"].PHP_EOL);
