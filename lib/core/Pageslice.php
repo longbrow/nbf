@@ -29,28 +29,28 @@ class Pageslice{
     private $pagediv;//分页div的样式代码
     //定义样式
     //省略号样式
-    private $points = "style='margin:0;border-style:none;background:none;padding:4px 0px;color:#808080;float:left;'";
+    private $points = "style='margin:0;border-style:none;background:none;padding:5px 0px;color:#808080;float:left;'";
    
     //未选中的页码按钮样式
-    private $a_style = "style='display:block;float:left;margin-right:10px;"
-            . "padding:2px 12px;height:24px;border:1px #cccccc solid;background:#fff;"
-            . "text-decoration:none;color:#808080;font-size:12px;line-height:24px;'";
+    private $a_style = "style='box-sizing:border-box;display:block;float:left;margin-right:10px;"
+            . "padding:2px 12px;height:30px;line-height:24px;border:1px #cccccc solid;background:#fff;"
+            . "text-decoration:none;color:#808080;font-size:12px;'";
     
     // 禁止使用的样式disable
-    private $disable_style = "style='float:left;padding:2px 12px;font-size:12px;height:24px;"
-            . "line-height:24px;color:#bbb;border:1px #ccc solid;background:#fcfcfc;margin:0;margin-right:8px;'";
+    private $disable_style = "style='box-sizing:border-box;float:left;padding:2px 12px;height:30px;line-height:24px;font-size:12px;"
+            . "color:#bbb;border:1px #ccc solid;background:#fcfcfc;margin:0;margin-right:10px;'";
     //选中按钮的样式
-    private $select_style = "style='display:block;float:left;margin-right:10px;"
-            . "padding:2px 12px;height:24px;"
-            . "text-decoration:none;font-size:12px;line-height:24px;border:1px #cccccc solid;background:#077ee3;color:#fff;'";
+    private $select_style = "style='box-sizing:border-box;display:block;float:left;margin-right:10px;"
+            . "padding:2px 12px;height:30px;line-height:24px;"
+            . "text-decoration:none;font-size:12px;border:1px #cccccc solid;background:#077ee3;color:#fff;'";
     
-    private $input_style="style='display:block;float:left;margin-top:0;margin-left:0;margin-bottom:0;margin-right:10px;text-align:center;"
-            . "height:30px;width:34px;color:blue;padding:0px;"
+    private $input_style="style='box-sizing:border-box;display:block;float:left;margin-top:0;margin-left:0;margin-bottom:0;margin-right:10px;text-align:center;"
+            . "width:34px;color:blue;height:30px;padding:0px;line-height:24px;font-size:12px;"
             . "border:#cccccc solid 1px;'";
 
 //总分页数和总记录数的样式
-    private $total_style ="style='border-style:none;background:none;font-size:12px;height:24px;line-height:24px;"
-            . "margin:0px;padding:4px 0px;color:#666;display:block;float:left;'";
+    private $total_style ="style='box-sizing:border-box;border-style:none;background:none;font-size:12px;"
+            . "margin:0px;height:30px;padding:3px 0px;color:#666;display:block;float:left;line-height:24px;'";
     //按钮鼠标进入和离开时候的事件属性
     private $mouseEvent = "onmouseenter='nbf_mouseenter(this)' onmouseleave='nbf_mouseleave(this)'";
     
@@ -202,7 +202,7 @@ class Pageslice{
     return "<a class= 'go_jump'$this->select_style href='javascript:;' onclick=\"javascript:var page=(this.previousSibling.value>$this->pages)?$this->pages:this.previousSibling.value;var URL='$this->uri';var r = /^\+?[0-9][0-9]*$/;if(r.test(page)){var pg=parseInt(page);if(pg==0){pg=1;}var newurl=URL.replace('*nbf',pg);location=newurl;}else{var newurl=URL.replace('*nbf','1');location=newurl;}\" title='Go'>Go</a>";        
     else
 
-    return "<a class= 'go_jump' $this->select_style href='javascript:;' onclick=\"javascript:var page=(this.previousSibling.value>$this->last)?$this->last:this.previousSibling.value;var URL='$this->uri';var r = /^\+?[0-9][0-9]*$/;if(r.test(page)){var pg=parseInt(page);if(pg==0){pg=1;}var newurl=URL.replace('*nbf',pg);location=newurl;}else{var newurl=URL.replace('*nbf','1');location=newurl;}\" title='往前跳转'>&lt;&lt;Go</a>";
+    return "<a class= 'go_jump' $this->select_style href='javascript:;' onclick=\"javascript:var page=(this.previousSibling.value>$this->last)?$this->last:this.previousSibling.value;var URL='$this->uri';var r = /^\+?[0-9][0-9]*$/;if(r.test(page)){var pg=parseInt(page);if(pg==0){pg=1;}var newurl=URL.replace('*nbf',pg);location=newurl;}else{var newurl=URL.replace('*nbf','1');location=newurl;}\" title='往前跳转'>Go</a>";
     }
 
     /*
@@ -232,8 +232,8 @@ class Pageslice{
      *  显示总页数和总记录数的html代码
      */
     private function total_num(){
-        return "<p class='nbf_p_style' $this->total_style >共<b style='color:red;'> " . $this->pages .
-                " </b>页<b style='color:red;'> " . $this->total . " </b>条数据</p>";        
+        return "<p class='nbf_p_style' $this->total_style >共<span style='color:red;'> " . $this->pages .
+                " </span>页<span style='color:red;'> " . $this->total . " </span>条数据</p>";        
     }
     
     
